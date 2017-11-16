@@ -7,17 +7,22 @@ using namespace vizkit3d_world;
 const std::string Task::JOINTS_CMD_POSFIX = ":joints_cmd";
 
 Task::Task(std::string const& name) :
-        TaskBase(name), vizkit3dWorld(NULL)
+        TaskBase(name)
 {
+    vizkit3dWorld = new Vizkit3dWorld();
 }
 
 Task::Task(std::string const& name, RTT::ExecutionEngine* engine) :
-        TaskBase(name, engine),
-        vizkit3dWorld(NULL)
+        TaskBase(name, engine)
 {
+    vizkit3dWorld = new Vizkit3dWorld();
 }
 
 Task::~Task() {
+    if (vizkit3dWorld) {
+        delete vizkit3dWorld;
+        vizkit3dWorld = NULL;
+    }
 }
 
 void Task::setupJointsPorts() {
@@ -108,11 +113,11 @@ bool Task::configureHook() {
         return false;
 
     //create an instance from Vizkit3dWorld
-    vizkit3dWorld = new Vizkit3dWorld(_world_file_path.value(),
-                                      _model_paths.value(),
-                                      _ignored_models.get(),
-                                      _width.get(),
-                                      _height.get());
+    vizkit3dWorld->initialize(_world_file_path.value(),
+                            _model_paths.value(),
+                            _ignored_models.get(),
+                            _width.get(),
+                            _height.get());
 
     //Initialize vizkit3d world
     //this method initialize a thread with event loop
@@ -146,7 +151,5 @@ void Task::cleanupHook() {
     TaskBase::cleanupHook();
 
     releaseJointsPorts();
-    delete vizkit3dWorld;
-    vizkit3dWorld = NULL;
+    vizkit3dWorld->deInitialize();
 }
-
